@@ -1,7 +1,6 @@
 # Back propagation algorithm for learning in multilayered networks
 
 import math
-from copy import deepcopy
 from collections import defaultdict
 
 def g(val):
@@ -19,6 +18,8 @@ class BackPropNeuralNetwork():
 
         for link in links:
             self.__addSynapse(*link)
+            
+        self.layer = {}
         self.__initLayers()
         
     def __addSynapse(self, fromNeurone, toNeurone, intialWeight = 0.5):
@@ -32,7 +33,7 @@ class BackPropNeuralNetwork():
         
         # For (input, output) in given examples
         for A, y in examples:
-            In = deepcopy(A)
+            In = {}
             for level in xrange(2, self.M + 1):
                 for i in self.layer[level]:
                     In[i] = sum(self.weight[j][i] * A[j] for j in self.children[i])
@@ -60,26 +61,25 @@ class BackPropNeuralNetwork():
         # print self.weight
     
     def __initLayers(self):
-        '''Finds the neurones per layer and the number of layers'''
+        '''Finds the neurones per layer 
+        and the number of layers of the graph'''
         fromN = set()
         toN = set()
-        for n1 in self.weight:
+        for n1, n2W in self.weight.items():
             fromN.add(n1)
-            for n2 in self.weight[n1]:
-                toN.add(n2)
+            toN.update(n2W.keys())
+                
         outputNodes = toN - fromN  # Top layer
-        # mid = fromN & toN #Hidden neurons
-        inputNodes = fromN - toN  # bottom layer
+        inputNodes  = fromN - toN  # bottom layer
         
-        self.layer = {}
-        level = 1
+        level = 1 # Level of bottom layer
         levelNodes = inputNodes
         while len(levelNodes):
             self.layer[level] = levelNodes
+            level += 1
             levelNodes = set(n2 for n1 in levelNodes
                              for n2 in self.weight[n1]
                              if n2 not in outputNodes)
-            level += 1
 
         self.layer[level] = outputNodes
         self.M = len(self.layer)

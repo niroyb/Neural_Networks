@@ -40,23 +40,25 @@ class ReseauNeurones():
                     A[i] = g(In[i])
             
             delta = {}
-            # Calculate error on expected output
+            # Calculate delta of output layer
             for i in self.top:
                 delta[i] = gPrime(In[i])*(y[i] - A[i])
                 
             newGraph = deepcopy(self.weight)
             
-            # Propagate error correction to layers below
+            # Propagate deltas backward from output to input layer
             
             #For all layers but the top one
-            for level in xrange(self.M-1, 0, -1):
+            for level in xrange(self.M-1, 1, -1):
                 # For nodes in current layer
                 for j in self.layer[level]: # j is current node
                     # Calculate the error based on weights to higher layers
                     delta[j] = gPrime(In[j])*sum(self.weight[j][i]*delta[i] for i in self.weight[j])
-                    # Assign corrected weights for links with higher layer
-                    for i in self.weight[j]: # i is a parent of j
-                        newGraph[j][i] += alpha*A[j]*delta[i]
+            
+            # Update every weight in the network using deltas
+            for j in self.weight:
+                for i in self.weight[j]:
+                    newGraph[j][i] += alpha*A[j]*delta[i]
             self.weight = newGraph
         #print A
         #print delta

@@ -22,7 +22,7 @@ class BackPropNeuralNetwork():
         self.layer = {}
         self.__initLayers()
         
-    def __addSynapse(self, fromNeurone, toNeurone, intialWeight = 0.5):
+    def __addSynapse(self, fromNeurone, toNeurone, intialWeight=0.5):
         '''Adds a directional link between two nodes/neurons'''
         self.weight[fromNeurone][toNeurone] = intialWeight
         self.children[toNeurone].append(fromNeurone)
@@ -32,20 +32,20 @@ class BackPropNeuralNetwork():
         with all the given examples'''
         
         # For (input, output) in given examples
-        for A, y in examples:
+        for activation, expectedOutput in examples:
             In = {}
-            for level in xrange(2, self.M + 1):
+            for level in xrange(2, self.nbLayers + 1):
                 for i in self.layer[level]:
-                    In[i] = sum(self.weight[j][i] * A[j] for j in self.children[i])
-                    A[i] = g(In[i])
+                    In[i] = sum(self.weight[j][i] * activation[j] for j in self.children[i])
+                    activation[i] = g(In[i])
             
             delta = {}
             # Calculate delta of output layer
-            for i in self.layer[self.M]:
-                delta[i] = gPrime(In[i]) * (y[i] - A[i])
+            for i in self.layer[self.nbLayers]:
+                delta[i] = gPrime(In[i]) * (expectedOutput[i] - activation[i])
             
             # Propagate deltas backward in intermediate layers
-            for level in xrange(self.M - 1, 1, -1):
+            for level in xrange(self.nbLayers - 1, 1, -1):
                 # For nodes in current layer
                 for j in self.layer[level]:  # j is current node
                     # Calculate the error based on weights to higher layers
@@ -54,9 +54,9 @@ class BackPropNeuralNetwork():
             # Update every weight in the network using deltas
             for j in self.weight:
                 for i in self.weight[j]:
-                    self.weight[j][i] += alpha * A[j] * delta[i]
+                    self.weight[j][i] += alpha * activation[j] * delta[i]
 
-        # print A
+        # print activation
         # print delta
         # print self.weight
     
@@ -65,14 +65,14 @@ class BackPropNeuralNetwork():
         and the number of layers of the graph'''
         fromN = set()
         toN = set()
-        for n1, n2W in self.weight.items():
+        for n1, n2Weight in self.weight.items():
             fromN.add(n1)
-            toN.update(n2W.keys())
+            toN.update(n2Weight.keys())
                 
         outputNodes = toN - fromN  # Top layer
-        inputNodes  = fromN - toN  # bottom layer
+        inputNodes = fromN - toN  # bottom layer
         
-        level = 1 # Level of bottom layer
+        level = 1  # Level of bottom layer
         levelNodes = inputNodes
         while len(levelNodes):
             self.layer[level] = levelNodes
@@ -82,8 +82,8 @@ class BackPropNeuralNetwork():
                              if n2 not in outputNodes)
 
         self.layer[level] = outputNodes
-        self.M = len(self.layer)
-        print self.layer, self.M
+        self.nbLayers = len(self.layer)
+        print self.layer, self.nbLayers
 
 links = [(0 , 4, 1),
          (1, 4, 0.5),
@@ -95,16 +95,15 @@ links = [(0 , 4, 1),
          (4, 7, 1),
          (5, 6, 0.5),
          (5, 7, 1)]
-
-r = BackPropNeuralNetwork(links)
-
 examples = [({0:0.8, 1:0.5, 2:0.5, 3:0.4}, {6:0.2, 7:0.5})]  # list of (inputs, output)
 alpha = 1.0
 
+r = BackPropNeuralNetwork(links)
 r.backPropagationLearning(examples, alpha)
+#print examples
 
 print "New synapse weights:"
-for n1, n2W in r.weight.items():
-    if len(n2W):
-        for n2, W in n2W.items():
-            print '{} -> {} = {:0.3}'.format(n1, n2, W)
+for n1, n2Weight in r.weight.items():
+    if len(n2Weight):
+        for n2, weight in n2Weight.items():
+            print '{} -> {} = {:0.3}'.format(n1, n2, weight)

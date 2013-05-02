@@ -1,9 +1,8 @@
-# Perceptron
+# Back propagation algorithm for learning in multilayered networks
 
 import math
 from copy import deepcopy
 from collections import defaultdict
-
 
 def g(val):
     return 1.0 / (1.0 + math.exp(-val))
@@ -11,7 +10,7 @@ def g(val):
 def gPrime(val):
     return g(val) * (1.0 - g(val))
 
-class ReseauNeurones():
+class BackPropNeuralNetwork():
     def __init__(self, links):
         '''Creates a network based on the given topology.
         links : [(node1, node2), ..., (node3, node4)]'''
@@ -43,12 +42,8 @@ class ReseauNeurones():
             # Calculate delta of output layer
             for i in self.layer[self.M]:
                 delta[i] = gPrime(In[i]) * (y[i] - A[i])
-                
-            newGraph = deepcopy(self.weight)
             
-            # Propagate deltas backward from output to input layer
-            
-            # For all layers but the outputNodes one
+            # Propagate deltas backward in intermediate layers
             for level in xrange(self.M - 1, 1, -1):
                 # For nodes in current layer
                 for j in self.layer[level]:  # j is current node
@@ -58,8 +53,8 @@ class ReseauNeurones():
             # Update every weight in the network using deltas
             for j in self.weight:
                 for i in self.weight[j]:
-                    newGraph[j][i] += alpha * A[j] * delta[i]
-            self.weight = newGraph
+                    self.weight[j][i] += alpha * A[j] * delta[i]
+
         # print A
         # print delta
         # print self.weight
@@ -101,12 +96,12 @@ links = [(0 , 4, 1),
          (5, 6, 0.5),
          (5, 7, 1)]
 
-r = ReseauNeurones(links)
+r = BackPropNeuralNetwork(links)
 
-exemples = [({0:0.8, 1:0.5, 2:0.5, 3:0.4}, {6:0.2, 7:0.5})]  # list of (inputs, output)
+examples = [({0:0.8, 1:0.5, 2:0.5, 3:0.4}, {6:0.2, 7:0.5})]  # list of (inputs, output)
 alpha = 1.0
 
-r.backPropagationLearning(exemples, alpha)
+r.backPropagationLearning(examples, alpha)
 
 print "New synapse weights:"
 for n1, n2W in r.weight.items():
